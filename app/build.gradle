@@ -16,7 +16,13 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    lintOptions {
+        abortOnError false
+    }
 }
+
+
+
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
@@ -35,4 +41,15 @@ task createJarDebug(type: Jar,dependsOn: ['build']) {
     exclude('**/R.class')
     exclude('**/R$*.class')
 }
+
+//add the following code if you want to obfuscate code
+task proguard(type: proguard.gradle.ProGuardTask, dependsOn: createJarDebug) {
+//  input path
+    injars "build/libs/test.jar"
+//  output path
+    outjars "lib/testProguard.jar"
+//  add config info
+    configuration 'proguard-rules.pro'
+}
+
 
