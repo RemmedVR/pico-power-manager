@@ -24,15 +24,15 @@ import android.os.PowerManager.WakeLock;
 import android.os.RemoteException;
 import android.util.Log;
 
-public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
-
-	public static Activity unityActivity = null;
-
+public class PicoVRPowerManger
+{
 	private static final String TAG = "PicoVRPowerManger";
 	private WakeLock wakeLock;
 	private PowerManager pm;
 	private static ExecutorService mInstaller = Executors.newFixedThreadPool(1);
-	
+
+	private Context unityContext = null;
+
 	private static DevicePolicyManager policyManager;
 	private static ComponentName componentName;
 	private static final int MY_REQUEST_CODE = 9999;
@@ -42,17 +42,14 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 	public static final String SLEEP_TIME = "setprop persist.psensor.sleep.delay ";
 	public static final String LOCK_SCREEN = "setprop persist.psensor.screenoff.delay ";
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		unityActivity = this;
+	public PicoVRPowerManger(Activity unityActivity)
+	{
+		unityContext = unityActivity.getApplicationContext();
+		Log.i(TAG, "CONSTRUCTOR PW!");
+		pm = (PowerManager) unityContext.getSystemService(Context.POWER_SERVICE);
+		policyManager = (DevicePolicyManager) unityContext.getSystemService(Context.DEVICE_POLICY_SERVICE);
+		componentName = new ComponentName("com.picovr.picovrpowermanager", "AdminReceiver.class");
 
-		pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-
-		
-		policyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-		
-		componentName = new ComponentName(this, AdminReceiver.class);
 	}
 
 	public void androidShutDown() {
@@ -84,6 +81,11 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 		pm.reboot("");
 	}
 
+	public void TestDebug()
+	{
+		Log.i(TAG, "TEST DEBUG LOG");
+	}
+
 	public void androidLockScreen() {
 		Log.i(TAG, "androidLockScreen");
 	
@@ -93,7 +95,6 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 		} else {
 
 			Log.i(TAG, "activeManage");
-			activeManage(); 
 		}
 	}
 
@@ -107,9 +108,10 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 
 	public void acquireWakeLock() {
 
-		
+		Log.i(TAG, "Wake_Lock!");
+
 		if (wakeLock == null) {
-			wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, this.getClass().getCanonicalName());
+			wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, this.getClass().getCanonicalName());
 			wakeLock.setReferenceCounted(false);
 			wakeLock.acquire();
 			Log.i(TAG, "acquireWakeLock");
@@ -136,45 +138,25 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 	}
 
 	
-	private void activeManage() {
 
-		Log.i(TAG, "activeManage()");
-		
-		Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-		
-		intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName);
-		
-		intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Lock screen");
-		startActivityForResult(intent, MY_REQUEST_CODE);
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (requestCode == MY_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
-			Log.i(TAG, "onActivityResult.lockNow");
-			policyManager.lockNow();
-		}
-		super.onActivityResult(requestCode, resultCode, data);
-
-	}
 
 	public void goToApp(String packagename) {
 
 		Intent intent = new Intent();
-		PackageManager packageManager = getPackageManager();
+		PackageManager packageManager = unityContext.getPackageManager();
 		intent = packageManager.getLaunchIntentForPackage(packagename);
-		startActivity(intent);
+		unityContext.startActivity(intent);
 
 	}
 
 	public void goToActivity(String packagename, String activityname) {
 
 		Intent intent;
-		PackageManager packageManager = getPackageManager();
+		PackageManager packageManager = unityContext.getPackageManager();
 		intent = packageManager.getLaunchIntentForPackage(packagename);
 		ComponentName comp = new ComponentName(packagename, activityname);
 		intent.setComponent(comp);
-		startActivity(intent);
+		unityContext.startActivity(intent);
 
 	}
 
@@ -301,7 +283,7 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 */
 	
 	public void silentUninstall(String pkgName) {
-		PackageManager pm = unityActivity.getPackageManager();
+		PackageManager pm = unityContext.getPackageManager();
 		Class<?>[] uninstalltypes = new Class[] {String.class, IPackageDeleteObserver.class, int.class};
 		Method uninstallmethod = null;
 		try {

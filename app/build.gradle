@@ -22,8 +22,6 @@ android {
 }
 
 
-
-
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:appcompat-v7:28.0.0'
@@ -35,17 +33,20 @@ dependencies {
 }
 
 task createJarDebug(type: Jar,dependsOn: ['build']) {
-    baseName "test"
+    baseName "pico-power-manager"
     from 'build/intermediates/javac/debug/compileDebugJavaWithJavac/classes'
     include('**')
     exclude('**/R.class')
     exclude('**/R$*.class')
+    exclude('**/BuildConfig.class')
+    exclude('**/MainActivity.class')
+    exclude('**/MainActivity$*.class')
 }
 
 //add the following code if you want to obfuscate code
 task proguard(type: proguard.gradle.ProGuardTask, dependsOn: createJarDebug) {
 //  input path
-    injars "build/libs/test.jar"
+    injars "build/libs/pico-power-manager.jar"
 //  output path
     outjars "lib/testProguard.jar"
 //  add config info
