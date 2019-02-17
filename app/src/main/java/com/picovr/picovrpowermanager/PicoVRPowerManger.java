@@ -52,6 +52,7 @@ public class PicoVRPowerManger
 
 	}
 
+
 	public void androidShutDown() {
 
 		Log.i(TAG, "androidShutDown");

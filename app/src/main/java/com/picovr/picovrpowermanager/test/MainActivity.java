@@ -301,7 +301,15 @@ public class MainActivity extends AppCompatActivity {
         intent = packageManager.getLaunchIntentForPackage(packagename);
         startActivity(intent);
     }
-    
+
+   
+    public void silentUninstallClick(View v) {
+
+        silentUninstall(PACKAGE_NAME);
+
+    }
+
+  
     public void silentUninstallClick(View v) {
         PackageManager pm = mContext.getPackageManager();
         Class<?>[] uninstalltypes = new Class[] {String.class, IPackageDeleteObserver.class, int.class};
