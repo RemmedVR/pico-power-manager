@@ -8,6 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import com.unity3d.player.UnityPlayer;
 import com.unity3d.player.UnityPlayerNativeActivityPico;
 
 import android.app.Activity;
@@ -36,11 +38,14 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 	private static DevicePolicyManager policyManager;
 	private static ComponentName componentName;
 	private static final int MY_REQUEST_CODE = 9999;
+	private static final String INF_TIME = "99999";
+	private static final String STANDARD_LOCK_TIME = "3";
 
 	public static final String ACTION_REQUEST_SHUTDOWN = "android.intent.action.ACTION_REQUEST_SHUTDOWN";
 	public static final String EXTRA_KEY_CONFIRM = "android.intent.extra.KEY_CONFIRM";
 	public static final String SLEEP_TIME = "setprop persist.psensor.sleep.delay ";
 	public static final String LOCK_SCREEN = "setprop persist.psensor.screenoff.delay ";
+	public static final String WAKE_UP = "input keyevent KEYCODE_WAKEUP";
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,17 +104,51 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 
 	public void androidUnlockScreen() {
 
-//		Log.e(TAG, "androidUnlockScreen");
-//		wakeLock = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
-//		wakeLock.acquire();
-//		wakeLock.release();
+		Log.e(TAG, "androidUnlockScreen");
+		wakeLock = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_DIM_WAKE_LOCK, "My:Tag");
+		wakeLock.acquire();
+		wakeLock.release();
+	}
+
+	public void infinityWakeUp()
+	{
+		try {
+			Log.e(TAG, "INF WAKE UP");
+			execCommand(WAKE_UP);
+			setpropSleep(INF_TIME);
+			setPropLockScreen(INF_TIME);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void WakeUp()
+	{
+		try {
+			Log.e(TAG, "WAKE UP");
+			execCommand(WAKE_UP);
+
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void releaseWakeUp()
+	{
+
+		Log.e(TAG, "RELEASE WAKE UP");
+		setpropSleep(STANDARD_LOCK_TIME);
+		setPropLockScreen(STANDARD_LOCK_TIME);
+
 	}
 
 	public void acquireWakeLock() {
 
 		
 		if (wakeLock == null) {
-			wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK, this.getClass().getCanonicalName());
+			wakeLock = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP, this.getClass().getCanonicalName());
 			wakeLock.setReferenceCounted(false);
 			wakeLock.acquire();
 			Log.i(TAG, "acquireWakeLock");
@@ -172,9 +211,13 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 		Intent intent;
 		PackageManager packageManager = getPackageManager();
 		intent = packageManager.getLaunchIntentForPackage(packagename);
+
 		ComponentName comp = new ComponentName(packagename, activityname);
 		intent.setComponent(comp);
+
 		startActivity(intent);
+
+
 
 	}
 
@@ -213,6 +256,7 @@ public class PicoVRPowerManger extends UnityPlayerNativeActivityPico {
 			sb.append("/n");
 		}
 		Log.e(TAG, sb.toString());
+
 		
 		try {
 			if (proc.waitFor() != 0) {

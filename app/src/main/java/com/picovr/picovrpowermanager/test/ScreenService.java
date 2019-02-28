@@ -45,7 +45,7 @@ public class ScreenService extends Service {
 		    public void run() {
 		    	
 		    	// 点亮亮屏
-				wakeLock = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+				wakeLock = pm.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.SCREEN_DIM_WAKE_LOCK, "Tag:My Tag");
 				wakeLock.acquire();
 				wakeLock.release();
 				Log.i("Log : ", "------>mKeyguardLock");
